@@ -1,0 +1,13 @@
+---
+block-list-secret-scan: []
+compact: true
+download-external-modules: false
+evaluate-variables: true
+external-modules-download-path: .external_modules
+framework:
+  - - github_configuration,github_actions,json,yaml,secrets
+mask: []
+quiet: true
+secrets-history-timeout: 3m
+secrets-scan-file-type: []
+summary-position: top

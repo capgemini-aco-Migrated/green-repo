@@ -1,0 +1,25 @@
+# Set the default behavior to linux line endings
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+.gitconfig text eol=lf
+*.code-workspace text eol=lf
+*.sh text eol=lf
+*.hcl text eol=lf
+*.go text eol=lf
+*.py text eol=lf
+*.tf text eol=lf
+*.tfpl text eol=lf
+*.idx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.markdownlintignore text eol=lf
+*.md text eol=lf
+*.sample text eol=lf
+*.yaml text eol=lf
+*.yamllint text eol=lf
+*.txt text eol=lf
+CODEOWNERS text eol=lf
+
+# Set the default behaviour for binary files
+*.png binary

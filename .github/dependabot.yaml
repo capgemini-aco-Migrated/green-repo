@@ -1,0 +1,34 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "bot"
+      - "ci/cd"
+    commit-message:
+      prefix: "chore"
+  # Added to inhouse workflow due to issue where dependabot removes
+  # pip package dependencies and only updates the package itself.
+  # - package-ecosystem: "pip"
+  #   directory: ".devcontainer/build/.config"
+  #   schedule:
+  #     interval: "weekly"
+  #   labels:
+  #     - "bot"
+  #     - "python"
+  #     - "devcontainer"
+  #   commit-message:
+  #     prefix: "chore"
+  - package-ecosystem: "docker"
+    directory: ".devcontainer"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "bot"
+      - "docker"
+      - "devcontainer"
+    commit-message:
+      prefix: "chore"

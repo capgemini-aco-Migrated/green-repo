@@ -1,0 +1,49 @@
+{
+    "languageId": "*",
+    "language": "en-GB, en",
+    "enableFiletypes": [
+        "hcl",
+        "md",
+        "txt"
+    ],
+    "ignorePaths":[],
+    "ignoreRegExpList": [
+        "/ftp:[^\\s]*/g",
+        "/ENC[^\\s]*/g"
+    ],
+
+    // Enable your dictionary by adding it to the list of `dictionaries`
+    "dictionaries": ["en-gb", "softwareTerms", "cloud", "technology-stack", "ignore-list"],
+
+    // Tell CSpell about your dictionary
+    "dictionaryDefinitions": [
+        {
+            // The name of the dictionary is used to look it up.
+            "name": "cloud",
+            // Path to the custom word file. Relative to this `cspell.json` file.
+            "path": "./.cspell-dictionaries/cloud.txt",
+            // Some editor extensions will use `addWords` for adding words to your
+            // personal dictionary.
+            "addWords": true
+        },
+        {
+            // The name of the dictionary is used to look it up.
+            "name": "technology-stack",
+            // Path to the custom word file. Relative to this `cspell.json` file.
+            "path": "./.cspell-dictionaries/technology-stack.txt",
+            // Some editor extensions will use `addWords` for adding words to your
+            // personal dictionary.
+            "addWords": true
+        },
+        {
+            // The name of the dictionary is used to look it up.
+            "name": "ignore-list",
+            // Path to the custom word file. Relative to this `cspell.json` file.
+            "path": "./.cspell-dictionaries/ignore-list.txt",
+            // Some editor extensions will use `addWords` for adding words to your
+            // personal dictionary.
+            "addWords": true
+        }
+
+    ]
+}

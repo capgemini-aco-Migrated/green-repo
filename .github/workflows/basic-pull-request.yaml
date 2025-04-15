@@ -1,0 +1,310 @@
+---
+# This workflow uses third party actions and software which
+# are governed by separate terms of service, privacy policy,
+# and support documentation. Always consider supply chain
+# security, the safety & compliance of sources
+
+# Common source workflow runs the basic actions i.e.
+# basic-src-security and basic-src-linting. Additionally
+# any standard actions required upon a pull request are
+# included such as the Pull Request title validation.
+name: Common Source Workflow
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+
+concurrency:
+  group: "source-linting"
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  # Basic source linting and validation
+  # utilising a composite action.
+  basic-linting:
+    runs-on: ubuntu-latest
+    name: "Basic Aggregated Linting"
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Check for GitHub Secret availability
+        id: check-gh-key-secret
+        shell: bash
+        run: |
+            if [[ ! -z  "${{ secrets.GH_APP_VERSIONING_ID }}" ]] && [[ ! -z  "${{ secrets.GH_APP_VERSIONING_PRIVATE_KEY }}" ]]; then
+              echo "All inputs are declared."
+              echo "declared=true" >> $GITHUB_OUTPUT;
+            fi
+
+      - name: "Basic Linting Action"
+        if: steps.check-gh-key-secret.outputs.declared
+        uses: capgemini-axis/basic-src-linting@d66745e3c0805056371876b5e31a5b7f24264e3b
+        with:
+          app_id: ${{ secrets.GH_APP_VERSIONING_ID }}
+          app_pk: ${{ secrets.GH_APP_VERSIONING_PRIVATE_KEY }}
+
+      - name: "Basic Linting Action"
+        if: >-
+          !steps.check-gh-key-secret.outputs.declared
+        uses: capgemini-axis/basic-src-linting@d66745e3c0805056371876b5e31a5b7f24264e3b
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Basic code security using a composite action to scan the repository source
+  # code with AntiVirus (ClamAV) and Vulnerability scanners (Trivy)
+  # till such time as alternatives are provided or SaaS services consumed.
+  # This code includes additional security checks for miss configuration,
+  # plain secrets, action approvals and aligning with best practice to
+  # use commit SHA over tags and branches. https://www.clamav.net/, https://trivy.dev/
+  basic-security-measures:
+    runs-on: ubuntu-latest
+    name: "Basic Security Measures"
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Check for GitHub Secret availability
+        id: check-gh-key-secret
+        shell: bash
+        run: |
+            if [[ ! -z  "${{ secrets.GH_APP_VERSIONING_ID }}" ]] && [[ ! -z  "${{ secrets.GH_APP_VERSIONING_PRIVATE_KEY }}" ]]; then
+              echo "All inputs are declared."
+              echo "declared=true" >> $GITHUB_OUTPUT;
+            fi
+
+      - name: "Basic Security Action"
+        if: steps.check-gh-key-secret.outputs.declared
+        uses: capgemini-axis/basic-src-security@34782ca3534258e126cb2935dafb0137376a011b
+        with:
+          app_id: ${{ secrets.GH_APP_VERSIONING_ID }}
+          app_pk: ${{ secrets.GH_APP_VERSIONING_PRIVATE_KEY }}
+
+      - name: "Basic Security Action"
+        if: >-
+          !steps.check-gh-key-secret.outputs.declared
+        uses: capgemini-axis/basic-src-security@34782ca3534258e126cb2935dafb0137376a011b
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # This workflow validates that the Pull Request raised conforms to commitlint
+  # and semantic versioning to align with the automated versioning process.
+  # If the PR or commit does not conform it will fail this workflow.
+  # [Semantic release documentation](https://semantic-release.gitbook.io/semantic-release/usage/configuration)
+  # [Capgemini AXIS version documentation](https://literate-garbanzo-g337mpm.pages.github.io/docs/best-practices/versioning/)
+  validate-pr-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: amannn/action-semantic-pull-request@cfb60706e18bc85e8aec535e3c577abe8f70378e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Configure which types are allowed (newline delimited).
+          # Default: https://github.com/commitizen/conventional-commit-types
+          types: |
+            docs
+            feat
+            fix
+            improvement
+            refactor
+            revert
+            test
+            style
+            perf
+            ci
+            chore
+          # Configure which scopes are allowed (newline delimited).
+          scopes: |
+            infra
+            core
+            ci/cd
+            ui
+            deps
+            README
+          # Configure that a scope must always be provided.
+          requireScope: false
+          # Configure which scopes (newline delimited) are disallowed in PR
+          # titles. For instance by setting # the value below, `chore(release):
+          # ...` and `ci(e2e,release): ...` will be rejected.
+          disallowScopes: |
+            release
+          # Configure additional validation for the subject based on a regex.
+          # This example ensures the subject doesn't start with an uppercase character.
+          subjectPattern: ^(?![A-Z]).+$
+          # If `subjectPattern` is configured, you can use this property to override
+          # the default error message that is shown when the pattern doesn't match.
+          # The variables `subject` and `title` can be used within the message.
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+          # If you use GitHub Enterprise, you can set this to the URL of your server
+          # githubBaseUrl: https://github.myorg.com/api/v3
+          # If the PR contains one of these labels (newline delimited), the
+          # validation is skipped.
+          # If you want to rerun the validation when labels change, you might want
+          # to use the `labeled` and `unlabeled` event triggers in your workflow.
+          ignoreLabels: |
+            bot
+            ignore-semantic-pull-request
+          # If you're using a format for the PR title that differs from the traditional Conventional
+          # Commits spec, you can use these options to customize the parsing of the type, scope and
+          # subject. The `headerPattern` should contain a regex where the capturing groups in parentheses
+          # correspond to the parts listed in `headerPatternCorrespondence`.
+          # See: https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-commits-parser#headerpattern
+          headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
+          headerPatternCorrespondence: type, scope, subject
+          # For work-in-progress PRs you can typically use draft pull requests
+          # from GitHub. However, private repositories on the free plan don't have
+          # this option and therefore this action allows you to opt-in to using the
+          # special "[WIP]" prefix to indicate this state. This will avoid the
+          # validation of the PR title and the pull request checks remain pending.
+          # Note that a second check will be reported if this is enabled.
+          wip: false
+
+  validate-pr-reviewers:
+    name: Validate PR Reviewers
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'pull_request'
+     # &&  github.event.pull_request.draft == false # If the PR starts out as a draft this check doesnt change
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Check for Reviewers
+        id: check-reviewers
+        env:
+          requested_reviewers: ${{ toJson(github.event.pull_request.requested_reviewers) }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          length=$(echo $requested_reviewers | jq '. | length  // 0')
+          latest=$(gh pr view ${{ github.event.number }} --json latestReviews,reviews --jq '. | .reviews + .latestReviews | length // 0')
+          echo "Requested Reviewers: ${length}"
+          echo "Active Reviews: ${latest}"
+          if [[ "${length}" -le 1 ]] && [[ "${latest}" -le 1 ]]; then
+            echo "Insufficient Reviewers Requested! - This pull request will not show up in operator queues"
+            exit 1
+          fi
+
+  # Definition of done validation of the pull request template
+  # checklist to ensure that tasks have been completed correctly
+  definition-of-done:
+    name: Definition of Done
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: Get Commit Code Changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: changes
+        with:
+          list-files: shell
+          filters: |
+            tests:
+              - added|modified: '**/test_**'
+              - added|modified: '**/*_test**'
+              - added|modified: '**/test/**'
+              - added|modified: '**/tests/**'
+            examples:
+              - added|modified: '**/example_**'
+              - added|modified: '**/*_example**'
+              - added|modified: '**/example/**'
+              - added|modified: '**/examples/**'
+            docs:
+              - added|modified: '**/*.md'
+              - added|modified: '**/doc/**'
+              - added|modified: '**/docs/**'
+
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: "Load Pull Request Template"
+        id: pr-template
+        if: ${{ hashFiles(format('{0}/.github/pull_request_template.md', github.workspace)) != '' }}
+        env:
+          PRBODY: "${{ github.event.pull_request.body }}"
+          PRTEMPLATE: "${{ github.workspace }}/.github/pull_request_template.md"
+        run: |
+          echo 'contents<<EOF' >> "$GITHUB_OUTPUT"
+          cat '${{ env.PRTEMPLATE }}' >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
+
+          DESCRIPTION=$(echo "${PRBODY}" | grep -Poz '(?<=<!-- change description -->)(.*\n)*.*(?=<!-- change description -->)')
+          CHAR_COUNT=$(echo "${DESCRIPTION}" | sed 's?## Change Description:??g' | tr -d '[:space:]' | wc -c)
+
+          echo "description_count=${CHAR_COUNT}" >> "$GITHUB_OUTPUT"
+
+          echo "Please ensure the appropriate template is used for Pull Requests"
+          echo "PR description DOES NOT contain a checklist: ${{ !contains(github.event.pull_request.body, '## Checklist:') }}"
+          echo "PR description is empty: ${{ github.event.pull_request.body == '' }}"
+          echo "PR description count is: ${CHAR_COUNT}"
+
+      - name: "Pull Request Template"
+        env:
+          PRTEMPLATECONTENT: "${{ steps.pr-template.outputs.contents }}"
+        if: >-
+          (!contains(github.event.pull_request.body, '## Checklist:') ||
+          github.event.pull_request.body == env.PRTEMPLATECONTENT ||
+          github.event.pull_request.body == '' ||
+          steps.pr-template.outputs.description_count <= 20 )
+        run: |
+          echo "Please ensure the appropriate template is used for Pull Requests"
+          echo "PR description is empty template: ${{ github.event.pull_request.body == env.PRTEMPLATECONTENT }}"
+          exit 1
+      - name: "Check for tests"
+        if: >-
+          contains(github.event.pull_request.body, '- [X] Tests have been added or updated where appropriate') &&
+          (steps.changes.outputs.tests == 'false')
+        run: |
+          echo "Please review PR checklist in accordance to the definition of done - No tests found in code changes"
+          exit 1
+      - name: "Check for examples"
+        if: >-
+          contains(github.event.pull_request.body, '- [X] Examples have been added or updated where appropriate') &&
+          (steps.changes.outputs.examples == 'false')
+        run: |
+          echo "Please review PR checklist in accordance to the definition of done - No examples found in code changes"
+          exit 1
+      - name: "Check for documentation"
+        if: >-
+          contains(github.event.pull_request.body, '- [X] Corresponding changes have been made to the `repository documentation`') &&
+          (steps.changes.outputs.docs == 'false')
+        run: |
+          echo "Please review PR checklist in accordance to the definition of done - No documentation updates found in code changes"
+          exit 1
+      - name: "Check for breaking change notification"
+        env:
+          PRBODY: '${{ github.event.pull_request.body }}'
+        if: >-
+          contains(github.event.pull_request.body, 'Does this PR introduce a breaking change')
+        run: |
+          PAYLOAD=$(cat <<'EOF' | grep -B2 "Does this PR introduce a breaking change?"
+          ${{env.PRBODY}}
+          EOF
+          )
+          notification="$(echo "${PAYLOAD}" | head -1 | awk '{print tolower($0)}')"
+          string=$(echo "${PAYLOAD}" | grep "Does this PR introduce a breaking change?" | awk -F\? '{print $2}' | awk -F'<!--' '{print tolower($1)}')
+          if [[ $string = *'**yes**'* ]]; then
+              echo "Breaking Change!"
+              if [[ $notification != *'caution'* ]] && [[ $notification != *'warning'* ]]; then
+                  echo "Warning or Caution Prompt should be used to highlight this is a breaking change"
+                  exit 1
+              fi
+          elif [[ $string = *'**no**'* ]]; then
+              echo "Not a breaking change"
+              if [[ $notification = *'caution'* ]] || [[ $notification = *'warning'* ]]; then
+                  echo "Warning or Caution Prompt should not be used as its not a breaking change"
+                  exit 1
+              fi
+          else
+              echo "Undetermined risk for breaking change"
+              exit 1
+          fi

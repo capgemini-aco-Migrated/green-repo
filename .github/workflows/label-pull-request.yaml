@@ -1,0 +1,104 @@
+---
+# This workflow uses third party actions and software which
+# are governed by separate terms of service, privacy policy,
+# and support documentation. Always consider supply chain
+# security, the safety & compliance of sources
+
+# Pull request labelling workflow ensures that Pull Requests (PR)
+# is labelled correctly. It also provides the ability to run automation
+# activities by setting a specific label to trigger specific workflows.
+# This pattern can be extended and labels adjusted using the [labeler.yaml](../labeler.yaml)
+# file. Ensure the labels are created within the repository other wise an error comment
+# is added to the PR when it attempts to use an invalid label.
+name: Pull Request Labeling
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+      - labeled
+
+concurrency:
+  group: "re-label-workflow"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  triage-labels:
+    name: Triage PR Labels
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'released')
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: true
+          configuration-path: ".github/labeler.yaml"
+  breaking-change:
+    name: Breaking Change Detected
+    if: >-
+      ( contains(github.event.pull_request.body, 'Does this PR introduce a breaking change? **YES**')
+      || contains(github.event.pull_request.labels.*.name, 'breaking-change') )
+      && !contains(github.event.pull_request.title, format('[{0}]', 'BREAKING CHANGE'))
+      && !contains(github.event.pull_request.labels.*.name, 'released')
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Add [BREAKING CHANGE] Trigger"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          TITLE=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.title')
+          if ! grep -q '\[BREAKING CHANGE\]' <<< "${TITLE}"
+          then
+            echo "PR: /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}"
+            echo "Title: ${TITLE} [BREAKING CHANGE]"
+            gh api --method PATCH \
+              /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
+              -f title="${TITLE} [BREAKING CHANGE]";
+          fi
+  dynamic-triggers:
+    name: "Dynamic Label Triggers"
+    if: >-
+      ( (contains(github.event.pull_request.labels.*.name, 'validate')
+          || contains(github.event.pull_request.labels.*.name, 'test')
+          || contains(github.event.pull_request.labels.*.name, 'deploy'))
+      && github.event.pull_request.labels.*.name != '[]' )
+      && !contains(github.event.pull_request.labels.*.name, 'released')
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        action: ["validate", "test", "deploy"]
+    steps:
+      - name: Add ${{ matrix.action }} Trigger
+        if: >-
+          contains(github.event.pull_request.labels.*.name, matrix.action)
+          && !contains(github.event.pull_request.title, format('[{0}]', matrix.action))
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          TITLE=$(gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.title')
+          if ! grep -q '\[${{ matrix.action }}\]' <<< "${TITLE}"
+          then
+            echo "PR: /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}"
+            echo "Title: ${TITLE} [${{ matrix.action }}]"
+            gh api --method PATCH \
+              /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
+              -f title="${TITLE} [${{ matrix.action }}]";
+          fi

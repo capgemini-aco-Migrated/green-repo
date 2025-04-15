@@ -1,0 +1,14 @@
+---
+extends: default
+
+ignore:
+  - kubernetes
+  - '**/.terragrunt-cache'
+  - '**/.terraform'
+
+rules:
+  line-length: disable
+  new-lines:
+    type: unix
+  truthy: disable
+  comments-indentation: disable

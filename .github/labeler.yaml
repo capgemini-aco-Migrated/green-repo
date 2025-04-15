@@ -1,0 +1,109 @@
+---
+ci/cd:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - '.github/**'
+              - '.github/*'
+              - '.config/**'
+              - '.config/*'
+              - .pre-commit-config.yaml
+              - .markdownlint.json
+              - .markdownlintignore
+              - cspell.json
+              - .yamllint
+              - commitlint.config.js
+              - package.json
+              - .tflint.hcl
+
+docker:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - Dockerfile
+              - '**/Dockerfile'
+              - .dockerignore
+              - '**/.dockerignore'
+              - '**/devcontainer.json'
+
+documentation:
+  - head-branch: ['^docs']
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - docs/**
+              - docs/*
+              - images/**
+              - images/*
+              - '**/*.md'
+
+python:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - '**/*.py'
+              - '**/*.pyc'
+
+devcontainer:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - '.devcontainer/**'
+              - '.devcontainer/*'
+              - '**/devcontainer.json'
+              - '*.code-workspace'
+terragrunt:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - 'terraform/**'
+              - 'terraform/*'
+              - '**/terragrunt.hcl'
+
+terraform:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - '**/*hcl'
+              - '**/*.tf'
+              - '**/*.tftpl'
+
+kubernetes:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - 'terraform/**/namespaces/**'
+              - 'kubernetes/**'
+              - 'kubernetes/*'
+
+feature:
+  - head-branch: ['^feature', '^feat']
+
+bug:
+  - head-branch: ['^fix']
+
+enhancement:
+  - head-branch: ['^improvement', "^refactor", "^style"]
+
+# # Add 'release' label to any PR that is opened against the `main` branch
+# release:
+#   - base-branch: 'main'
+
+# These labels when enabled can trigger the automated workflows
+# when a PR is raised. When commented out the label "deploy" has
+# to be applied manually to trigger the workflows.
+# terragrunt.yaml
+# deploy:
+#   - all:
+#       - base-branch: 'main'
+#       - changed-files:
+#           - any-glob-to-any-file:
+#               - 'terraform/**'
+#               - 'terraform/*'
+
+# validate:
+#   - any:
+#       - changed-files:
+#           - any-glob-to-any-file:
+#               - 'terraform/**'
+#               - 'terraform/*'

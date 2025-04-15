@@ -1,0 +1,102 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+  "name": "Development Workspace",
+  // Optionally consider using a prebuilt container image via
+  // devcontainer or via a standard docker image
+  // - Pulled images may speed up loading times instead of waiting for builds
+  "image": "ghcr.io/capgemini-axis/devcontainer-base:1.15.0@sha256:f6b766748e2ab7dd857fabfd093c7f86f55cc69e90fcf46cd948b3477a7204b2",
+
+  // Docker Run Args
+  "runArgs": ["--shm-size=256m", "--tmpfs", "/tmp:rw,noexec,nosuid,size=5g"],
+
+  // "build": {
+  //     "dockerfile": "Dockerfile",
+  //     "args": {
+  //         "VARIANT": "ubuntu-22.04"
+  //     }
+  // },
+
+  // Custom volumes and mounts to persist and share information
+  "mounts": [
+      // Share stored AWS credentials with container
+      // "source=${localEnv:HOME}/.aws/credentials,target=/home/vscode/.aws/credentials,type=bind,consistency=cached"
+
+      // Deploy Personalisation - Override method alternative to dotfiles
+      // "source=${localEnv:HOME}/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached"
+
+      // Windows SSH_AUTH_SOCK setup issue revert to static SSH files
+      // Please ensure HOME variable is set in the windows, osx or linux profile
+      "source=${localEnv:HOME}/.ssh,target=/home/vscode/.dev-host-ssh,type=bind,consistency=cached"
+  ],
+
+  // https://code.visualstudio.com/remote/advancedcontainers/environment-variables
+  "remoteEnv": {
+      // [Opt-In] Uncomment these values to persist AWS session between host and local.
+      // "AWS_PROFILE": "${localEnv:AWS_PROFILE}",
+      // "AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
+      // "AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY}",
+
+      // [Opt-In] Uncomment and add script name to use custom startup scripts.
+      // Scripts and args as a string comma separated from the next i.e.
+      // "script arg1 arg2, script, script argx argy"
+      // "POST_SCRIPTS": "test.sh 1 2 3, test.sh, test.sh 1",
+
+      // [Default] Developer build settings
+      "WORKDIR": "${containerWorkspaceFolder}",
+      "INFRACOST_API_KEY": "${localEnv:INFRACOST_API_KEY}",
+      "PREFIX":"${localEnv:USERNAME}${localEnv:USER}",
+      "DEVELOP": "local"
+  },
+
+  "containerEnv": {},
+
+  // The more features added the longer container takes to build
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+  },
+
+  // Configure tool-specific properties.
+  "customizations": {
+      "vscode": {
+        "settings": {
+          "window.title": "AXIS Bare Repository Template",
+          "aws.telemetry": false,
+          "redhat.telemetry.enabled": false,
+          "dev.containers.copyGitConfig": true,
+          "files.eol": "\n",
+          "terminal.integrated.scrollback": 200000,
+          "terminal.integrated.defaultProfile.osx": "zsh",
+          "terminal.integrated.defaultProfile.linux": "zsh",
+          "markdownlint.config": {
+            "extends": "${workspaceFolder}/.config/.markdownlint.json",
+            "ignore": "${workspaceFolder}/.config/.markdownlintignore"
+          },
+          "markdownlint.ignore": "${workspaceFolder}/.config/.markdownlintignore",
+          "cSpell.workspaceRootPath": "${workspaceFolder:.config}"
+        },
+        "extensions": [
+          "streetsidesoftware.code-spell-checker",
+          "timonwong.shellcheck",
+          "davidanson.vscode-markdownlint",
+          "dbaeumer.vscode-eslint",
+          "esbenp.prettier-vscode",
+          "github.vscode-github-actions",
+          "donjayamanne.githistory"
+        ]
+      }
+  },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+
+  // Use ' initializeCommand'to run commands on the host machine before the container is created
+  // "initializeCommand": [],
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // git exited with 128: fatal: detected dubious ownership in repository
+  // "postCreateCommand": "sudo git config --system --add safe.directory \"*\"",
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  "remoteUser": "vscode"
+}

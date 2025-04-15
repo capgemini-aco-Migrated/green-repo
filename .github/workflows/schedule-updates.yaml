@@ -1,0 +1,42 @@
+---
+# This workflow uses third party actions and software which
+# are governed by separate terms of service, privacy policy,
+# and support documentation. Always consider supply chain
+# security, the safety & compliance of sources
+
+# Scheduled update workflow for components
+# that require regular updates that are not included
+# with dependabot i.e. av definitions, pre-commit
+name: Scheduled Updates
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+concurrency:
+  group: "system-updates"
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  standard-component-updates:
+    runs-on: ubuntu-latest
+    name: "Update Standard Components"
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - id: antivirus-updates
+        uses: capgemini-axis/basic-src-security/antivirus-update@34782ca3534258e126cb2935dafb0137376a011b
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: pre-commit-updates
+        uses: capgemini-axis/basic-src-security/precommit-update@34782ca3534258e126cb2935dafb0137376a011b
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

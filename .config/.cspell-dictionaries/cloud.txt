@@ -1,0 +1,59 @@
+abac #attribute-based access control
+amazon web services
+api # application programming interface
+aws
+awscli
+awscurrent
+awspending
+azure
+azuretools
+azwi
+baas # backend-as-a-service
+boto
+boto3
+cdn # content delivery network
+cmp # cloud management platform
+cncf
+codespaces
+crm # customer relationship management
+csp # cloud service provider
+devcontainer
+devcontainers
+devops
+devsecops
+erp # enterprise resource planning
+gcp # google cloud platform
+gitpods
+google
+hyperscaler
+hypervisor
+iaas # infrastructure-as-a-service
+iac  # infrastructure-as-code
+ide # integrated development environment
+linux
+microservices
+middleware
+msp # managed service provider
+multi-cloud
+multi-tenancy
+oidc
+ola
+on-demand
+on-premise
+opensource
+owasp
+paas # platform-as-a-service
+rbac #role based access control
+saas # software-as-a-service
+sdk # software development kit
+sla # service level agreement
+sops
+sre
+ui # user interface
+unix
+ux # user experience
+vdi # virtual desktop infrastructure
+vm # virtual machine
+vmm # virtual machine monitor
+webserver
+webservice
