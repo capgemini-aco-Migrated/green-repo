@@ -59,7 +59,7 @@ jobs:
       new_release_version: ${{ steps.semantic_dry.outputs.new_release_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Get semantic release version
         uses: cycjimmy/semantic-release-action@cb425203a562475bca039ba4dbf90c7f9ac790f4
         id: semantic_dry
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false  # make sure the release step uses its own credentials
       - name: Get token

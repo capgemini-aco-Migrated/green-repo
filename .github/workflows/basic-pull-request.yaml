@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Basic Aggregated Linting"
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Check for GitHub Secret availability
         id: check-gh-key-secret
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Basic Security Measures"
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Check for GitHub Secret availability
         id: check-gh-key-secret
@@ -178,7 +178,7 @@ jobs:
       github.event_name == 'pull_request'
      # &&  github.event.pull_request.draft == false # If the PR starts out as a draft this check doesnt change
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Check for Reviewers
         id: check-reviewers
@@ -224,7 +224,7 @@ jobs:
               - added|modified: '**/doc/**'
               - added|modified: '**/docs/**'
 
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: "Load Pull Request Template"
         id: pr-template
